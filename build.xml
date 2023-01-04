@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+/**
+ * Copyright Tyto Software Pvt. Ltd.
+ */
+-->
+<project name="demo" default="start_sahipro_run_scripts">
+	<property name="sahi.home.dir" value="D:/sahi_pro"/>
+	
+	<taskdef name="sahi" classname="net.sf.sahi.ant.RunSahiTask" classpath="${sahi.home.dir}/lib/ant-sahi.jar"/>
+	
+	<target name="start_sahipro_run_scripts">
+		<parallel>
+			<antcall target="start_sahi"/>
+			<sequential>
+				<waitfor maxwait="3" maxwaitunit="minute" checkevery="100">
+					<http url="http://localhost.sahipro.com:9999/_s_/spr/blank.htm"/>
+				</waitfor>
+				<antcall target="run_sahitests" />
+			</sequential>
+		</parallel>
+	</target>
+	
+	<target name="run_sahitests" depends="runtestschrome, stopsahi, failsahichrome" />
+	
+	<target name="stopsahi" description="stop sahi server">
+		<taskdef name="sahi" classname="net.sf.sahi.ant.RunSahiTask" classpath="${sahi.home.dir}/lib/ant-sahi.jar"/>	
+        <sahi stop="true" sahihost="localhost" sahiport="9999"/>
+    </target>
+	
+	<target name="copy-scripts-to-sahi-dir"> 
+		<copy todir="${sahi.home.dir}/userdata/scripts"> 
+			<fileset dir="userdata/scripts" /> 
+		</copy> 
+	</target>
+
+	<target name="start_sahi" description="starts proxy from deployed folder">
+		<java classname="net.sf.sahi.Proxy" fork="true">
+			<jvmarg
+	               line="-Xmx512m -Xms64m -Djdk.http.ntlm.transparentAuth=allHosts"/>
+			<classpath>
+				<fileset dir="${sahi.home.dir}/userdata/extlib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<pathelement location="${sahi.home.dir}/lib/sahi.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/rhino/js.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/db/h2.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/license/truelicense.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/license/truexml.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/dom4j-2.1.3.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/excelpoi.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/poi.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/poi-ooxml.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/poi-ooxml-schemas.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/xmlbeans.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/poi/commons-math3-3.6.1.jar" />
+				<pathelement location="${sahi.home.dir}/extlib/poi/commons-compress-1.21.jar" />
+				<pathelement location="${sahi.home.dir}/extlib/poi/commons-collections4-4.4.jar" />
+				<pathelement location="${sahi.home.dir}/extlib/poi/SparseBitSet-1.2.jar" />
+				<pathelement location="${sahi.home.dir}/extlib/c3p0/c3p0-0.9.5.5.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/c3p0/mchange-commons-java-0.2.20.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/javassist/javassist.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/sahi/sahiapplet.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/commons-codec-1.10.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/commons-logging-1.2.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/fluent-hc-4.5.6.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/httpclient-4.5.6.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/httpclient-cache-4.5.6.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/httpclient-win-4.5.6.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/httpcore-4.4.10.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/httpmime-4.5.6.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/jna-4.4.0.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/apacheclient/jna-platform-4.4.0.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/brotli/dec-0.2.0.jar"/>
+				<pathelement location="${sahi.home.dir}/extlib/jgit/org.eclipse.jgit-5.7.0.202003110725-r.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/slf4j-api-1.7.25.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/slf4j-simple-1.7.25.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/bcpg-jdk15on-1.64.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/bcpkix-jdk15on-1.64.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/bcprov-jdk15on-1.64.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/JavaEWAH-1.1.7.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/jsch-0.1.55.jar"/>
+			    <pathelement location="${sahi.home.dir}/extlib/jgit/jzlib-1.1.1.jar"/>
+			</classpath>
+			<arg value="${sahi.home.dir}" id="basePath"/>
+			<arg value="${sahi.home.dir}/userdata/" id="userdataPath"/>
+		</java>
+	</target>
+
+	<target name="set_timestamp">
+        <tstamp>
+            <format property="ts" pattern="yyyy_MM_dd__HH_mm_ss" locale="en, IN"/>
+        </tstamp>
+	</target>
+	
+	
+	<target name="set_properties_chrome" depends="set_timestamp">
+    	<property name="scriptDir" value="${sahi.home.dir}/userdata/scripts/"/>
+    	<property name="scriptName" value="Whimstay/Property_listing.sah"/>
+		<property name="browser" value="chrome"/>
+		<property name="startWith" value="BROWSER"/>
+		<property name="sendemail" value="false"/>
+		<property name="emailtrigger" value="success,failure,user_aborted,aborted_timeout"/>
+		<property name="emailproperties" value=""/>
+		<property name="sendemailForSubSuite" value="false"/>
+		<property name="sendemailperiodically" value="false"/>
+		<property name="sendemailperiodicallytime" value=""/>
+		<property name="emailPasswordHidden" value="true"/>
+		<property name="baseURL" value="http://sahitest.com/demo/"/>
+		<property name="host" value="localhost"/>
+		<property name="port" value="9999"/>
+		<property name="singlesession" value="false"/>
+		<property name="threads" value="5"/>
+		<property name="abortedRetryCount" value="0"/>
+		<property name="failureRetryCount" value="0"/>
+		<property name="isAvoidSkipping" value="false"/>
+		<property name="isAutohealEnabled" value="false"/>
+		<property name="suiteTimeOut" value="0.0"/>
+		<property name="showPeriodicSummary" value="true"/>
+		<property name="failedSuiteName" value="small_failed_${browser}.suite"/>
+		<property name="failedSuite" value="demo/${failedSuiteName}"/>
+		<property name="jsCodeCoverage" value="false"/>
+	</target>
+
+	<target name="runtestschrome" depends="copy-scripts-to-sahi-dir, set_properties_chrome">
+		<sahi suite="${scriptName}"
+			browsertype="${browser}"
+			startWith="${startWith}"
+			sendemail="${sendemail}"
+	        emailtrigger="${emailtrigger}"
+	        emailproperties="${emailproperties}"
+	        sendEmailForSubSuite="${sendemailForSubSuite}"
+	        sendEmailPeriodically="${sendemailperiodically}"
+			sendEmailPeriodicallyTime="${sendemailperiodicallytime}"
+			emailPasswordHidden="${emailPasswordHidden}"
+			baseurl="${baseURL}"
+			sahihost="${host}"
+			sahiport="${port}"
+			scriptsPathMaster="${scriptDir}"
+			failureproperty="sahi.failed.${browser}"
+			failedSuiteName="${failedSuiteName}"
+			haltonfailure="false"
+			singlesession="${singlesession}"
+			showPeriodicSummary="${showPeriodicSummary}"
+			threads="${threads}"
+			abortedRetryCount="${abortedRetryCount}"
+			failureRetryCount="${failureRetryCount}"
+			isAvoidSkipping="${isAvoidSkipping}"
+			isAutohealEnabled="${isAutohealEnabled}"
+			suiteTimeOut="${suiteTimeOut}"
+			jsCodeCoverage="${jsCodeCoverage}">
+			<report type="html" logdir="${sahi.home.dir}/userdata/sahi_reports"/>
+		</sahi>
+	</target>
+
+    <target name="failsahichrome" depends="set_properties_chrome" if="sahi.failed.${browser}">
+        <fail message="Sahi tests failed on browser ${browser}!"/>
+    </target>	
+</project>

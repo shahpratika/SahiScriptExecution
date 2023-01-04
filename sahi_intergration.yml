@@ -1,0 +1,54 @@
+trigger:
+- main
+
+pool:
+  name: Default
+
+steps:
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: 'productkey.txt'
+    
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: 'silent_install_sahipro.xml'
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Agent.TempDirectory)'
+    Contents: 'silent_install_sahipro.xml'
+    TargetFolder: '$(Agent.BuildDirectory)/s/'
+    
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: 'download_install_sahipro.ps1'
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Agent.TempDirectory)'
+    Contents: 'download_install_sahipro.ps1'
+    TargetFolder: '$(Agent.BuildDirectory)/s/'
+    
+- task: PowerShell@1
+  inputs:
+    scriptType: 'filePath'
+    arguments: '$(Agent.BuildDirectory)\s'
+    scriptName: 'download_install_sahipro.ps1'
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Agent.TempDirectory)'
+    Contents: 'productkey.txt'
+    TargetFolder: 'D:/sahi_pro/userdata/config/'
+    
+- task: Ant@1
+  inputs:
+    buildFile: 'build.xml'
+  continueOnError: true
+  
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'D:/sahi_pro/userdata/sahi_reports'
+    ArtifactName: 'Sahi HTML Reports'
+    publishLocation: 'Container'
+
